@@ -8,18 +8,6 @@
 #   Default: $rbenv::install_dir
 #   This variable is required.
 #
-# [$owner]
-#   This is set when you declare the rbenv class. There is no
-#   need to overrite it when calling the rbenv::build define.
-#   Default: $rbenv::owner
-#   This variable is required.
-#
-# [$group]
-#   This is set when you declare the rbenv class. There is no
-#   need to overrite it when calling the rbenv::build define.
-#   Default: $rbenv::group
-#   This variable is required.
-#
 # === Requires
 #
 # You will need to install the git package on the host system.
@@ -34,24 +22,19 @@
 #
 define rbenv::plugin(
   $install_dir = $rbenv::install_dir,
-  $owner       = $rbenv::owner,
-  $group       = $rbenv::group,
 ) {
-  require rbenv
+  include rbenv
 
   $plugin = split($name, '/') # divide plugin name into array
 
   exec { "install-${name}":
-    command => "git clone https://github.com/${plugin[0]}/${plugin[1]}",
-    path    => [ '/usr/bin' ],
+    command => "/usr/bin/git clone git://github.com/${name}.git",
     cwd     => "${install_dir}/plugins",
-    onlyif  => "test -d ${install_dir}/plugins",
-    unless  => "test -d ${install_dir}/plugins/${plugin[1]}",
+    onlyif  => "/usr/bin/test -d ${install_dir}/plugins",
+    unless  => "/usr/bin/test -d ${install_dir}/plugins/${plugin[1]}",
   }~>
   exec { "rbenv-permissions-${name}":
-    command     => "chown -R ${owner}:${group} ${install_dir} && \
-                    chmod -R g+w ${install_dir}",
-    path        => [ '/bin' ],
+    command     => "/bin/chown -R ${rbenv::owner}:${rbenv::group} ${install_dir} && /bin/chmod -R g+w ${install_dir}",
     refreshonly => true,
   }
 
